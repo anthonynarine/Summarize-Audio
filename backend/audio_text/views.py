@@ -2,11 +2,18 @@ from pytube import YouTube
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from decouple import config
 import os
 import re
+import openai
 
+# Set OpenAI API key
+openai.api_key = config("OPENAI_API_KEY")
 
 def transcribe_audio(file_path):
+    with open(file_path, "rb") as audio_file:
+        response = openai.Audio.transcribe("whisper-1", audio_file)
+        return response["text"]
     
 class SummarizeAudioView(APIView):
     def post(self, request):
