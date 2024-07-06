@@ -1,11 +1,11 @@
-from pytube import YouTube
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from decouple import config
 import os
-import re
 import openai
+
+# Utility functions created for this view
 
 # Set OpenAI API key
 openai.api_key = config("OPENAI_API_KEY")

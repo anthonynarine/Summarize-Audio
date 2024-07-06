@@ -18,13 +18,26 @@ def sanitize_filename(filename):
     filename = re.sub(r'[^a-zA-Z0-9._-]', '', filename)
     return filename
 
-def download_audio_from_youtube(url, media_dir):
+def audio_upload_path(video_id, filename):
+    """
+    Determines the upload path for downloaded audio files.
+
+    Args:
+        video_id (str): The video ID of the YouTube video.
+        filename (str): The original name of the file that was downloaded.
+
+    Returns:
+        str: The upload path for the file.
+    """
+    sanitized_filename = sanitize_filename(filename)
+    return os.path.join("media", video_id, sanitized_filename)
+
+def download_audio_from_youtube(url):
     """
     Downloads audio from a YouTube video and saves it to the specified media directory.
 
     Args:
         url (str): The URL of the YouTube video.
-        media_dir (str): The directory where the audio file will be saved.
 
     Returns:
         str: The path to the saved audio file.
@@ -33,23 +46,22 @@ def download_audio_from_youtube(url, media_dir):
         Exception: If there is an error in the downloading process.
     """
     try:
-        # Ensure the media directory exists
-        if not os.path.exists(media_dir):
-            os.makedirs(media_dir)
-        
         # Download audio from YouTube
         yt = YouTube(url)
         audio = yt.streams.filter(only_audio=True).first()
-        
+
         # Sanitize the filename
         sanitized_filename = sanitize_filename(f"{yt.video_id}.mp4")
-        
-        # Define the output file path using the sanitized filename
-        output_file_path = os.path.join(media_dir, sanitized_filename)
-        
+
+        # Use audio_upload_path to determine the final path
+        output_file_path = audio_upload_path(yt.video_id, sanitized_filename)
+
+        # Create subdirectory if it doesn't exist
+        os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
+
         # Download the audio file to the media directory with the sanitized filename
-        audio.download(output_path=media_dir, filename=sanitized_filename)
-        
+        audio.download(output_path=os.path.dirname(output_file_path), filename=sanitized_filename)
+
         return output_file_path
     except Exception as e:
         raise Exception(f"Error downloading audio: {e}")
